@@ -4,13 +4,25 @@ object Playground extends App {
 
 
 
+  val myObject = new ControlBoard()
+
+  val solarPanels = new SolarPanels("model_3000")
+
+  val windTurbines = new WindTurbines("model_2000")
+
+  val hydroPlant = new HydroPlant("model_1000")
+
+  myObject.menu()
 
 
-  class SolarPanel(val id: String, val capacity: Double) {
-  // Class variables (properties)
+
+
+
+  class SolarPanels(val id: String) {
+  
   private var energyGenerated: Double = 0
 
-  // Methods
+  
   def generateEnergy(amount: Double): Unit = {
     energyGenerated += amount
   }
@@ -22,11 +34,11 @@ object Playground extends App {
 
 
 
-class WindTurbine(val id: String, val capacity: Double) {
-  // Class variables (properties)
+class WindTurbines(val id: String) {
+  
   private var energyGenerated: Double = 0
 
-  // Methods
+  
   def generateEnergy(amount: Double): Unit = {
     energyGenerated += amount
   }
@@ -38,11 +50,14 @@ class WindTurbine(val id: String, val capacity: Double) {
 
 
 
-class HydroPowerPlant(val id: String, val capacity: Double) {
-  // Class variables (properties)
+
+
+
+class HydroPowerPlant(val id: String) {
+  
   private var energyGenerated: Double = 0
 
-  // Methods
+  
   def generateEnergy(amount: Double): Unit = {
     energyGenerated += amount
   }
@@ -54,46 +69,257 @@ class HydroPowerPlant(val id: String, val capacity: Double) {
 
 
 
-val solarPanel1 = new SolarPanel("SP001", 1000)
-
-  // Generate energy and retrieve energy generated
-  solarPanel1.generateEnergy(500)
-  val energyGenerated = solarPanel1.getEnergyGenerated
-
-  // Print the solar panel information
-  println(solarPanel1)
-
-
-  val solarPanel1 = new SolarPanel("SP001", 1000)
-
-  // Generate energy and retrieve energy generated
-  solarPanel1.generateEnergy(500)
-  val energyGenerated = solarPanel1.getEnergyGenerated
-
-  // Print the solar panel information
-  println(solarPanel1)
-
-
-
-  val solarPanel1 = new SolarPanel("SP001", 1000)
-
-  // Generate energy and retrieve energy generated
-  solarPanel1.generateEnergy(500)
-  val energyGenerated = solarPanel1.getEnergyGenerated
-
-  // Print the solar panel information
-  println(solarPanel1)
 
 
 
 
 
+class ControlBoard() {
+  
+  def menu(): Unit= {
 
-class ControlBoard(powerPlant: PowerPlant) {
-  def turnSolarPanelLeft(panel: SolarPanel): Unit = {
-    panel.turnLeft()
+    println("\n")
+    
+    println("---------------------------------")
+
+    println("WELCOME TO R.E.P.S.")
+
+    println("---------------------------------")
+
+
+    println("PLEASE CHOOSE OPTION FROM THE LIST")
+
+    println("---------------------------------")
+
+    println("1. CONTROL THE MACHINES |  2.  SEE MACHINES STATUS")
+
+    println("3. DATA ANALYSIS        |  4.  SEE STORAGE STATUS")
+
+    println("---------------------------------")
+
+    println("OR ENTER E TO EXIT")
+
+    println("---------------------------------")
+
+
+    val input= scala.io.StdIn.readLine("YOUR OPTION: ")
+
+
+    input match {
+      case "1" => machinesControl() 
+      case "2" => machinesStatus() 
+      case "3" => dataAnalysis() 
+      case "4" => storageStatus() 
+      case "E" => exit() 
+      case "e" => exit() 
+      case _   => menu()
+    }
+ 
+
   }
+
+
+  def machinesControl(): Unit= {
+
+    println("\n")
+
+    println("---------------------------------")
+
+    
+
+    println("CHOOSE THE ENERGY SOURCE")
+
+
+    println("1. SOLAR PANELS      |  2.  WIND TURBINES")
+
+    println("3. HYDRO POWERPLANT  |  4.  EXIT TO MENU")
+
+    println("---------------------------------")
+
+    println("\n")
+
+    val powerPlant = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+    powerPlant match {
+      case "1" => {
+
+      println("\n")
+
+      println("---------------------------------")
+
+      println("SOLAR PANELS")
+
+      println("WHAT WOULD YOU LIKE TO DO?")
+
+      println("1. TURN LEFT 45 DEGREES  |  2.  TURN RIGHT 45 DEGREES")
+      
+      println("3. DISCONNECT/CONNECT PANELS     |  4.  EXIT TO MENU")
+
+       val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+       
+
+       choice match {
+
+        case "1" => {
+
+          solarPanels.moveLeft()
+
+        }
+
+        case "2" => {
+
+          solarPanels.moveRight()
+          
+        }
+
+        case "3" => {
+
+          solarPanels.disconnect()
+          
+        }
+
+        case "4" => {
+
+          menu()
+          
+        }
+
+        case _   => menu()
+
+       }
+
+       }
+      case "2" => {
+
+        println("\n")
+
+        println("---------------------------------")
+
+        println("WIND TURBINES")
+
+        println("WHAT WOULD YOU LIKE TO DO?")
+
+        println("1. TURN LEFT 45 DEGREES  |  2.  TURN RIGHT 45 DEGREES")
+        
+        println("3. DISCONNECT/CONNECT TURBINES     |  4.  EXIT TO MENU")
+
+        val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+        
+
+        choice match {
+
+          case "1" => {
+
+            windTurbines.moveLeft()
+
+          }
+
+          case "2" => {
+
+            windTurbines.moveRight()
+            
+          }
+
+          case "3" => {
+
+            windTurbines.disconnect()
+            
+          }
+
+          case "4" => {
+
+            menu()
+            
+          }
+
+          case _   => menu()
+
+        }
+       }
+      case "3" => {
+
+        println("\n")
+
+        println("---------------------------------")
+
+        println("HYDRO POWERPLANT")
+
+        println("WHAT WOULD YOU LIKE TO DO?")
+
+        
+        
+        println("1. DISCONNECT/CONNECT POWERPLANT    |  2.  EXIT TO MENU")
+
+        val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+        
+
+        choice match {
+
+          
+
+          case "1" => {
+
+            hydroPlant.disconnect()
+            
+          }
+
+          case "2" => {
+
+            menu()
+            
+          }
+
+          case _   => menu()
+
+        }
+
+      }
+      case "4" => menu() 
+      case _   => machinesControl()
+    }
+
+
+
+
+
+    
+
+  }
+
+  def machinesStatus() = {
+
+    println("status")
+
+  }
+
+  def dataAnalysis() = {
+
+    println("data")
+
+  }
+
+  def storageStatus() = {
+
+    println("storage")
+
+  }
+
+  def exit() = {
+
+    println("exit")
+
+  }
+
 }
+
+
+
+
+
+
 
 
 
@@ -141,3 +367,5 @@ class DataAnalyser(data: Seq[Double]) {
 
 
 }
+
+
