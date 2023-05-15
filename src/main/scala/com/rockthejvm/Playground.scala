@@ -3,6 +3,8 @@ import java.io.FileWriter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.io.Source
+import scala.collection.mutable
+
 
 
 object Playground extends App {
@@ -650,17 +652,90 @@ class ControlBoard() {
 
   def dataAnalysis(): Unit = {
 
-    val dateTime = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-    val formattedTime = dateTime.format(DateTimeFormatter.ofPattern(timeFormat))
-    timestamp.startsWith(formattedTime)
+    def filterDataByTimeFormat(timeFormat: String): List[String] = {
+      val energyRecords = scala.io.Source.fromFile("energy_history.csv").getLines().toList
+      energyRecords.filter { line =>
+        line.split(",") match {
+          case Array(_, timestamp, _, _) =>
+            isValidTimestamp(timestamp, timeFormat)
+          case _ =>
+            false
+        }
+      }
+    }
 
-    
+    def isValidTimestamp(timestamp: String, timeFormat: String): Boolean = {
+      val dateTime = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+      val formattedTime = dateTime.format(DateTimeFormatter.ofPattern(timeFormat))
+      timestamp.startsWith(formattedTime)
+    }
+
+    val timeFormat = scala.io.StdIn.readLine("Enter the time format (e.g., 'yyyy-MM-dd' or 'HH'): ")
+    val filteredLines = filterDataByTimeFormat(timeFormat)
+
+    val energyData = filteredLines.flatMap { line =>
+      line.split(",") match {
+        case Array(_, timestamp, energyGenerated, _) =>
+          Some(energyGenerated.toDouble)
+        case _ =>
+          None
+      }
+    }
+
+    val dataAnalyser= DataAnalyser(energyData)
+
+    val meanValue = dataAnalyser.mean
+    val medianValue = dataAnalyser.median
+    val modeValue = dataAnalyser.mode
+    val rangeValue = dataAnalyser.range
+    val midRangeValue = dataAnalyser.midRange
+
+    val analysisReport = s"Analysis Report\n\n" +
+      s"Time format: $timeFormat\n" +
+      s"Mean: $meanValue\n" +
+      s"Median: $medianValue\n" +
+      s"Mode: $modeValue\n" +
+      s"Range: $rangeValue\n" +
+      s"Mid-range: $midRangeValue\n"
+
+    val outputFileName = s"data_analysis_${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv"
+    val fileWriter = new FileWriter(outputFileName)
+    fileWriter.write(analysisReport)
+    fileWriter.close()
+
+    println(s"Data analysis report written to '$outputFileName'.")
+
+
+    menu()
+
+     
 
   }
 
   def storageStatus() = {
 
-    println("storage")
+    val energy_records = Source.fromFile("energy_history.csv").getLines().toList
+      var total_energy = 0.0 // Default value
+      
+      energy_records.lastOption.foreach { line =>
+        line.split(",") match {
+          case Array(_, _, _, capacity) => 
+            total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
+          case _ => {}
+        }
+      }
+
+      println("\n")
+
+      println("---------------------------")
+
+      println(s"Energy storage has the following amount of energy: $total_energy/100000")
+
+
+
+      println("---------------------------")
+
+    menu()
 
   }
 
@@ -688,7 +763,7 @@ class ErrorAlarm {
 
 
   
-/*
+
 
 class DataAnalyser(data: Seq[Double]) {
   
@@ -713,10 +788,10 @@ class DataAnalyser(data: Seq[Double]) {
 
   def range: Double = data.max - data.min
 
-  def midrange: Double = (data.min + data.max) / 2
+  def midRange: Double = (data.min + data.max) / 2
 }
 
-*/
+
 
 
 
