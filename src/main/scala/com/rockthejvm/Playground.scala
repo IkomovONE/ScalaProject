@@ -1,4 +1,9 @@
 package com.rockthejvm
+import java.io.FileWriter
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import scala.io.Source
+
 
 object Playground extends App {
 
@@ -10,7 +15,21 @@ object Playground extends App {
 
   val windTurbines = new WindTurbines("model_2000")
 
-  val hydroPlant = new HydroPlant("model_1000")
+  val hydroPlant = new HydroPowerPlant("model_1000")
+
+  solarPanels.generateEnergy(500)
+
+  solarPanels.generateEnergy(500)
+
+  solarPanels.generateEnergy(500)
+
+  windTurbines.generateEnergy(500)
+
+  solarPanels.generateEnergy(500)
+
+  hydroPlant.generateEnergy(500)
+
+  windTurbines.generateEnergy(500)
 
   myObject.menu()
 
@@ -20,17 +39,112 @@ object Playground extends App {
 
   class SolarPanels(val id: String) {
   
-  private var energyGenerated: Double = 0
+    private var energyGenerated: Double = 0
+
+    private var turnAngle: Double = 360
+
+
+    private var isConnected: Boolean = true
+
+
 
   
-  def generateEnergy(amount: Double): Unit = {
-    energyGenerated += amount
+    def generateEnergy(amount: Double): Unit = {
+
+      
+      energyGenerated += amount
+
+      val energy_records = Source.fromFile("energy_history.csv").getLines().toList
+      var total_energy = 0.0 // Default value
+      
+      energy_records.lastOption.foreach { line =>
+        line.split(",") match {
+          case Array(_, _, _, capacity) => 
+            total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
+          case _ => {}
+        }
+      }
+
+      val timestamp = LocalDateTime.now()
+      val capacity = total_energy + energyGenerated
+      val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+      val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
+
+      val fileWriter = new FileWriter("energy_history.csv", true)
+      fileWriter.write(report)
+      fileWriter.close()
+    }
+
+
+    def moveLeft(): Unit ={
+
+      if (turnAngle== 0) {
+
+        turnAngle = 315
+
+      }
+
+      else {
+        turnAngle -= 45
+      }
+
+      println("\n")
+
+      println(s"Turn angle is $turnAngle degrees")
+
+      println("\n")
+
+    }
+
+    def moveRight(): Unit ={
+
+      if (turnAngle== 360) {
+
+        turnAngle = 45
+
+      }
+
+      else  {
+        turnAngle += 45
+      }
+
+      println("\n")
+
+      println(s"Turn angle is $turnAngle degrees")
+
+      println("\n")
+
+    }
+
+
+
+  
+
+    def disconnect(): Unit ={
+
+      if (isConnected== true) {
+
+      isConnected= false
+    }
+
+      else {
+
+      isConnected= true
+    }
+
+    println("\n")
+
+    println(s"Connected: $isConnected ")
+
+    println("\n")
+
+    }
+
+    override def toString: String = s"\n ---------------------------- \n SolarPanels $id \n Energy generated: $energyGenerated, \n Turn angle: $turnAngle, \n Connected: $isConnected"
+  
   }
 
-  def getEnergyGenerated: Double = energyGenerated
 
-  override def toString: String = s"SolarPanel $id (Capacity: $capacity)"
-}
 
 
 
@@ -38,14 +152,102 @@ class WindTurbines(val id: String) {
   
   private var energyGenerated: Double = 0
 
+  private var turnAngle: Double = 360
+
+
+  private var isConnected: Boolean = true
+
   
   def generateEnergy(amount: Double): Unit = {
-    energyGenerated += amount
+      energyGenerated += amount
+
+      val energy_records = Source.fromFile("energy_history.csv").getLines().toList
+      var total_energy = 0.0 // Default value
+      
+      energy_records.lastOption.foreach { line =>
+        line.split(",") match {
+          case Array(_, _, _, capacity) => 
+            total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
+          case _ => {}
+        }
+      }
+
+      val timestamp = LocalDateTime.now()
+      val capacity = total_energy + energyGenerated
+      val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+      val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
+
+      val fileWriter = new FileWriter("energy_history.csv", true)
+      fileWriter.write(report)
+      fileWriter.close()
+    }
+
+
+  def moveLeft(): Unit ={
+
+    if (turnAngle== 0) {
+
+      turnAngle = 315
+
+    }
+
+    else  {
+      turnAngle -= 45
+    }
+
+    println("\n")
+
+    println(s"Turn angle is $turnAngle degrees")
+
+    println("\n")
+
   }
 
-  def getEnergyGenerated: Double = energyGenerated
+  def moveRight(): Unit ={
 
-  override def toString: String = s"SolarPanel $id (Capacity: $capacity)"
+    if (turnAngle== 360) {
+
+      turnAngle = 45
+
+    }
+
+    else {
+
+      turnAngle += 45
+
+
+    }
+
+
+    println("\n")
+
+    println(s"Turn angle is $turnAngle degrees")
+
+    println("\n")
+
+  }
+
+  def disconnect(): Unit ={
+
+    if (isConnected== true) {
+
+    isConnected= false
+  }
+
+  else  {
+
+    isConnected= true
+  }
+
+  println("\n")
+
+  println(s"Connected: $isConnected ")
+
+  println("\n")
+}
+
+  override def toString: String = s"\n ---------------------------- \n WindTurbines $id \n Energy generated: $energyGenerated, \n Turn angle: $turnAngle, \n Connected: $isConnected"
+  
 }
 
 
@@ -57,14 +259,58 @@ class HydroPowerPlant(val id: String) {
   
   private var energyGenerated: Double = 0
 
+  private var isConnected: Boolean = true
+
+  
+
+  
+
   
   def generateEnergy(amount: Double): Unit = {
-    energyGenerated += amount
+      energyGenerated += amount
+
+      val energy_records = Source.fromFile("energy_history.csv").getLines().toList
+      var total_energy = 0.0 // Default value
+      
+      energy_records.lastOption.foreach { line =>
+        line.split(",") match {
+          case Array(_, _, _, capacity) => 
+            total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
+          case _ => {}
+        }
+      }
+
+      val timestamp = LocalDateTime.now()
+      val capacity = total_energy + energyGenerated
+      val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+      val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
+
+      val fileWriter = new FileWriter("energy_history.csv", true)
+      fileWriter.write(report)
+      fileWriter.close()
+    }
+
+  def disconnect(): Unit ={
+
+    if (isConnected== true) {
+
+    isConnected= false
   }
 
-  def getEnergyGenerated: Double = energyGenerated
+  else  {
 
-  override def toString: String = s"SolarPanel $id (Capacity: $capacity)"
+    isConnected= true
+  }
+
+  println("\n")
+
+  println(s"Connected: $isConnected ")
+
+  println("\n")
+}
+
+  override def toString: String = s"\n ---------------------------- \n Hydro powerplant $id \n Energy generated: $energyGenerated, \n Connected: $isConnected"
+  
 }
 
 
@@ -107,7 +353,7 @@ class ControlBoard() {
 
     input match {
       case "1" => machinesControl() 
-      case "2" => machinesStatus() 
+      case "2" => machinesStatus()
       case "3" => dataAnalysis() 
       case "4" => storageStatus() 
       case "E" => exit() 
@@ -115,6 +361,13 @@ class ControlBoard() {
       case _   => menu()
     }
  
+
+  }
+
+
+  def exit() ={
+
+    print("BYE")
 
   }
 
@@ -129,6 +382,8 @@ class ControlBoard() {
 
     println("CHOOSE THE ENERGY SOURCE")
 
+    println("---------------------------------")
+
 
     println("1. SOLAR PANELS      |  2.  WIND TURBINES")
 
@@ -136,7 +391,7 @@ class ControlBoard() {
 
     println("---------------------------------")
 
-    println("\n")
+    
 
     val powerPlant = scala.io.StdIn.readLine("YOUR OPTION: ")
 
@@ -149,11 +404,17 @@ class ControlBoard() {
 
       println("SOLAR PANELS")
 
+      println("---------------------------------")
+
       println("WHAT WOULD YOU LIKE TO DO?")
 
-      println("1. TURN LEFT 45 DEGREES  |  2.  TURN RIGHT 45 DEGREES")
+      println("---------------------------------")
+
+      println("1. TURN LEFT 45 DEGREES        |  2.  TURN RIGHT 45 DEGREES")
       
-      println("3. DISCONNECT/CONNECT PANELS     |  4.  EXIT TO MENU")
+      println("3. DISCONNECT/CONNECT PANELS   |  4.  EXIT TO MENU")
+
+      println("---------------------------------")
 
        val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
 
@@ -165,17 +426,23 @@ class ControlBoard() {
 
           solarPanels.moveLeft()
 
+          menu()
+
         }
 
         case "2" => {
 
           solarPanels.moveRight()
+
+          menu()
           
         }
 
         case "3" => {
 
           solarPanels.disconnect()
+
+          menu()
           
         }
 
@@ -198,11 +465,17 @@ class ControlBoard() {
 
         println("WIND TURBINES")
 
+        println("---------------------------------")
+
         println("WHAT WOULD YOU LIKE TO DO?")
 
-        println("1. TURN LEFT 45 DEGREES  |  2.  TURN RIGHT 45 DEGREES")
+        println("---------------------------------")
+
+        println("1. TURN LEFT 45 DEGREES        |  2.  TURN RIGHT 45 DEGREES")
         
-        println("3. DISCONNECT/CONNECT TURBINES     |  4.  EXIT TO MENU")
+        println("3. DISCONNECT/CONNECT TURBINES |  4.  EXIT TO MENU")
+
+        println("---------------------------------")
 
         val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
 
@@ -214,17 +487,23 @@ class ControlBoard() {
 
             windTurbines.moveLeft()
 
+            menu()
+
           }
 
           case "2" => {
 
             windTurbines.moveRight()
+
+            menu()
             
           }
 
           case "3" => {
 
             windTurbines.disconnect()
+
+            menu()
             
           }
 
@@ -246,11 +525,17 @@ class ControlBoard() {
 
         println("HYDRO POWERPLANT")
 
+        println("---------------------------------")
+
         println("WHAT WOULD YOU LIKE TO DO?")
+
+        println("---------------------------------")
 
         
         
-        println("1. DISCONNECT/CONNECT POWERPLANT    |  2.  EXIT TO MENU")
+        println("1. DISCONNECT/CONNECT POWERPLANT  |  2.  EXIT TO MENU")
+
+        println("---------------------------------")
 
         val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
 
@@ -263,6 +548,8 @@ class ControlBoard() {
           case "1" => {
 
             hydroPlant.disconnect()
+
+            menu()
             
           }
 
@@ -289,15 +576,85 @@ class ControlBoard() {
 
   }
 
-  def machinesStatus() = {
+  def machinesStatus(): Unit = {
 
-    println("status")
+    println("\n")
+
+
+    println("CHOOSE THE ENERGY SOURCE")
+
+    println("---------------------------------")
+
+
+    println("1. SOLAR PANELS      |  2.  WIND TURBINES")
+
+    println("3. HYDRO POWERPLANT  |  4.  EXIT TO MENU")
+
+    println("---------------------------------")
+
+    
+
+    val powerPlant = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+    var status= ""
+
+    
+
+
+    powerPlant match {
+
+      case "1" => {
+
+        status = solarPanels.toString()
+
+        println(status)
+
+        menu()
+
+        
+      }
+
+      case "2" => {
+
+        status = windTurbines.toString()
+
+        println(status)
+
+        menu()
+
+      }
+
+      case "3" => {
+
+        status = hydroPlant.toString()
+
+        println(status)
+
+        menu()
+
+      }
+
+      case "4" => menu()
+
+      case _ => machinesStatus()
+
+
+
+    }
+
+    println(s"$status")
+
+    
 
   }
 
-  def dataAnalysis() = {
+  def dataAnalysis(): Unit = {
 
-    println("data")
+    val dateTime = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    val formattedTime = dateTime.format(DateTimeFormatter.ofPattern(timeFormat))
+    timestamp.startsWith(formattedTime)
+
+    
 
   }
 
@@ -307,11 +664,7 @@ class ControlBoard() {
 
   }
 
-  def exit() = {
-
-    println("exit")
-
-  }
+  
 
 }
 
@@ -335,10 +688,10 @@ class ErrorAlarm {
 
 
   
-
+/*
 
 class DataAnalyser(data: Seq[Double]) {
-  // Methods
+  
   def mean: Double = data.sum / data.length.toDouble
 
   def median: Double = {
@@ -362,6 +715,8 @@ class DataAnalyser(data: Seq[Double]) {
 
   def midrange: Double = (data.min + data.max) / 2
 }
+
+*/
 
 
 
