@@ -7,7 +7,7 @@ import scala.io.Source
 import scala.collection.mutable
 
 
-//Scala REPS implmentation
+//Scala REPS implementation
 
 //Daniil Komov and Andrei Toma
 
@@ -19,11 +19,25 @@ object Playground extends App {
 
   val myObject = new ControlBoard()
 
+  //declaring a control board object
+
   val solarPanels = new SolarPanels("model_3000")
+
+   //declaring a solar panel object
 
   val windTurbines = new WindTurbines("model_2000")
 
+   //declaring a wind turbine object
+
   val hydroPlant = new HydroPowerPlant("model_1000")
+
+   //declaring a hydro powerplant object
+
+  val alarm = new ErrorAlarm()
+
+  //object for alarm system
+
+  //creating different class objects to work with them
 
   solarPanels.generateEnergy(500)
 
@@ -39,48 +53,88 @@ object Playground extends App {
 
   windTurbines.generateEnergy(500)
 
+  //Since we don't have real REPS here, and no sensors to see if energy is generated, we are generating energy by invoking a method in the classes
+  //the value inside brackets is the amount of energy to be generated
+
   myObject.menu()
+
+  //calling menu of the program
 
 
 
 
 
   class SolarPanels(val id: String) {
+
+    //defining solar panel class
   
     private var energyGenerated: Double = 0
 
+    //Energy generated status variable
+
     private var turnAngle: Double = 360
+
+    //Turn angle status variable
 
 
     private var isConnected: Boolean = true
+
+    //Connection status variable
 
 
 
   
     def generateEnergy(amount: Double): Unit = {
 
-      
-      energyGenerated += amount
+      //declaring a method for the panel to generate energy
 
-      val energy_records = Source.fromFile("energy_history.csv").getLines().toList
-      var total_energy = 0.0 // Default value
+      if (isConnected== false) {alarm.generateConnectionError()} //generate connection error using a separate class, alarm system
+      else {
+
+        energyGenerated += amount
+
+        //changing the generated energy status value
+
       
-      energy_records.lastOption.foreach { line =>
-        line.split(",") match {
-          case Array(_, _, _, capacity) => 
-            total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
-          case _ => {}
+
+        val energy_records = Source.fromFile("energy_history.csv").getLines().toList
+
+        //getting energy records from file
+
+        var total_energy = 0.0 
+
+        //total energy generated variable (default)
+        
+        energy_records.lastOption.foreach { line =>
+          line.split(",") match {
+            case Array(_, _, _, capacity) => 
+              total_energy = capacity.split("/")(0).toDouble 
+            case _ => {}
+          }
         }
+
+        //extracting the lines from the file and getting the last line to get the total energy generated
+
+        val timestamp = LocalDateTime.now()
+
+        //getting current timestamp
+        val capacity = total_energy + energyGenerated
+
+        //
+
+        if (capacity>95000) {alarm.generateStorageError()} 
+        val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        val report = s"$id,$formattedTime,$energyGenerated,$capacity/100000\n"
+
+        val fileWriter = new FileWriter("energy_history.csv", true)
+        fileWriter.write(report)
+        fileWriter.close()
+
+
       }
 
-      val timestamp = LocalDateTime.now()
-      val capacity = total_energy + energyGenerated
-      val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-      val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
-
-      val fileWriter = new FileWriter("energy_history.csv", true)
-      fileWriter.write(report)
-      fileWriter.close()
+      
+      
     }
 
 
@@ -124,6 +178,13 @@ object Playground extends App {
 
     }
 
+    def disconnectEmergency(): Unit ={
+
+      isConnected= false
+
+
+
+    }
 
 
   
@@ -167,27 +228,37 @@ class WindTurbines(val id: String) {
 
   
   def generateEnergy(amount: Double): Unit = {
+    
+    if (isConnected== false) {alarm.generateConnectionError()}
+    else {
+
       energyGenerated += amount
 
       val energy_records = Source.fromFile("energy_history.csv").getLines().toList
       var total_energy = 0.0 // Default value
-      
-      energy_records.lastOption.foreach { line =>
-        line.split(",") match {
-          case Array(_, _, _, capacity) => 
-            total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
-          case _ => {}
+        
+        energy_records.lastOption.foreach { line =>
+          line.split(",") match {
+            case Array(_, _, _, capacity) => 
+              total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
+            case _ => {}
+          }
         }
-      }
 
-      val timestamp = LocalDateTime.now()
-      val capacity = total_energy + energyGenerated
-      val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-      val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
+        val timestamp = LocalDateTime.now()
+        val capacity = total_energy + energyGenerated
 
-      val fileWriter = new FileWriter("energy_history.csv", true)
-      fileWriter.write(report)
-      fileWriter.close()
+        if (capacity>95000) {alarm.generateStorageError()}
+        val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
+
+        val fileWriter = new FileWriter("energy_history.csv", true)
+        fileWriter.write(report)
+        fileWriter.close()
+
+
+    }
+    
     }
 
 
@@ -235,6 +306,14 @@ class WindTurbines(val id: String) {
 
   }
 
+  def disconnectEmergency(): Unit ={
+
+      isConnected= false
+
+
+
+    }
+
   def disconnect(): Unit ={
 
     if (isConnected== true) {
@@ -275,6 +354,10 @@ class HydroPowerPlant(val id: String) {
 
   
   def generateEnergy(amount: Double): Unit = {
+
+    if (isConnected== false) {alarm.generateConnectionError()}
+    else {
+
       energyGenerated += amount
 
       val energy_records = Source.fromFile("energy_history.csv").getLines().toList
@@ -290,12 +373,28 @@ class HydroPowerPlant(val id: String) {
 
       val timestamp = LocalDateTime.now()
       val capacity = total_energy + energyGenerated
+
+      if (capacity>95000) {alarm.generateStorageError()}
       val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
       val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
 
       val fileWriter = new FileWriter("energy_history.csv", true)
       fileWriter.write(report)
       fileWriter.close()
+    }
+
+  
+    
+
+    }
+
+  def disconnectEmergency(): Unit ={
+
+      isConnected= false
+
+
+
+
     }
 
   def disconnect(): Unit ={
@@ -822,25 +921,48 @@ class ControlBoard() {
     }
 
 
-    
-
-  
-
 }
 
 
 
-
-
-
-
-
-
 class ErrorAlarm {
-  def generateError(message: String): Unit = {
-    // Generate an error with the given message
-    // (Sample code - replace with actual implementation)
-    println(s"Error: $message")
+
+
+  def generateStorageError(): Unit = {
+
+    println("\n")
+
+    println("-----------------------------------------------------------")
+    
+    println(s"Error: STORAGE IS ALMOST FULL. DISCONNECTING THE ENERGY SOURCES")
+
+    println("-----------------------------------------------------------")
+
+    solarPanels.disconnectEmergency()
+
+    windTurbines.disconnectEmergency()
+
+    hydroPlant.disconnectEmergency()
+
+    
+
+    
+  }
+
+  def generateConnectionError(): Unit = {
+
+    println("\n")
+
+    println("-----------------------------------------------------------")
+    
+    println(s"Error: ENERGY SOURCE IS DISCONNECTED")
+
+    println("-----------------------------------------------------------")
+
+
+
+
+
   }
 }
 
@@ -848,8 +970,6 @@ class ErrorAlarm {
 
 
   
-
-
 class DataAnalyser(data: Seq[Double]) {
   
   def mean: Double = data.sum / data.length.toDouble
