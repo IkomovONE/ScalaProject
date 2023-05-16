@@ -120,15 +120,22 @@ object Playground extends App {
         //getting current timestamp
         val capacity = total_energy + energyGenerated
 
-        //
+        //getting the current capacity value
 
         if (capacity>95000) {alarm.generateStorageError()} 
+
+        //generate the storage error if capacity is more than 95000
         val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        //creating a formatted timestamp
         val report = s"$id,$formattedTime,$energyGenerated,$capacity/100000\n"
+
+        //report variable is for writing into csv file
 
         val fileWriter = new FileWriter("energy_history.csv", true)
         fileWriter.write(report)
         fileWriter.close()
+
+        //writing into the file
 
 
       }
@@ -139,6 +146,8 @@ object Playground extends App {
 
 
     def moveLeft(): Unit ={
+
+      //function for turning the source left for better production
 
       if (turnAngle== 0) {
 
@@ -160,6 +169,8 @@ object Playground extends App {
 
     def moveRight(): Unit ={
 
+      //function for turning the source right for better production
+
       if (turnAngle== 360) {
 
         turnAngle = 45
@@ -180,6 +191,8 @@ object Playground extends App {
 
     def disconnectEmergency(): Unit ={
 
+      //method for emergency disconnect, chenging the isConnected value to false
+
       isConnected= false
 
 
@@ -191,6 +204,8 @@ object Playground extends App {
 
     def disconnect(): Unit ={
 
+      //disconnect/connect method
+
       if (isConnected== true) {
 
       isConnected= false
@@ -201,6 +216,8 @@ object Playground extends App {
       isConnected= true
     }
 
+    //disconnect if connected and otherwise connect, on/off switch
+
     println("\n")
 
     println(s"Connected: $isConnected ")
@@ -210,7 +227,8 @@ object Playground extends App {
     }
 
     override def toString: String = s"\n ---------------------------- \n SolarPanels $id \n Energy generated: $energyGenerated, \n Turn angle: $turnAngle, \n Connected: $isConnected"
-  
+
+    //For telling the status
   }
 
 
@@ -218,43 +236,73 @@ object Playground extends App {
 
 
 class WindTurbines(val id: String) {
+
+  //defining wind turbine class
   
   private var energyGenerated: Double = 0
 
+  //Energy generated status variable
+
   private var turnAngle: Double = 360
+
+  //turn angle status variable
 
 
   private var isConnected: Boolean = true
 
+  //Connection status variable
+
   
   def generateEnergy(amount: Double): Unit = {
+
+    //declaring a method for the panel to generate energy
     
-    if (isConnected== false) {alarm.generateConnectionError()}
+    if (isConnected== false) {alarm.generateConnectionError()} //generate connection error using a separate class, alarm system
     else {
 
       energyGenerated += amount
 
+      //changing the generated energy status value
+
       val energy_records = Source.fromFile("energy_history.csv").getLines().toList
-      var total_energy = 0.0 // Default value
+
+      //getting energy records from file
+      var total_energy = 0.0 
+
+      //Setting def value for total energy generated
         
         energy_records.lastOption.foreach { line =>
           line.split(",") match {
             case Array(_, _, _, capacity) => 
-              total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
+              total_energy = capacity.split("/")(0).toDouble 
             case _ => {}
           }
         }
 
+        //Extracting the last info about total generated value and adding it to our def value
+
+
+
         val timestamp = LocalDateTime.now()
+
+        //Getting current timestamp
         val capacity = total_energy + energyGenerated
 
-        if (capacity>95000) {alarm.generateStorageError()}
+        //Making capacity, total energy generated
+
+        if (capacity>95000) {alarm.generateStorageError()} //throw error if capacity more then 95000
         val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+
+        //formatting the time
         val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
+
+        //report variable for file writing
 
         val fileWriter = new FileWriter("energy_history.csv", true)
         fileWriter.write(report)
         fileWriter.close()
+
+        //writing to file
 
 
     }
@@ -263,6 +311,8 @@ class WindTurbines(val id: String) {
 
 
   def moveLeft(): Unit ={
+
+    //function for turning the source left for better production
 
     if (turnAngle== 0) {
 
@@ -283,6 +333,8 @@ class WindTurbines(val id: String) {
   }
 
   def moveRight(): Unit ={
+
+     //function for turning the source right for better production
 
     if (turnAngle== 360) {
 
@@ -308,6 +360,8 @@ class WindTurbines(val id: String) {
 
   def disconnectEmergency(): Unit ={
 
+    //method for emergency disconnect, chenging the isConnected value to false
+
       isConnected= false
 
 
@@ -315,6 +369,10 @@ class WindTurbines(val id: String) {
     }
 
   def disconnect(): Unit ={
+
+    //normal connect/disconnect method
+
+
 
     if (isConnected== true) {
 
@@ -325,6 +383,8 @@ class WindTurbines(val id: String) {
 
     isConnected= true
   }
+
+  //disconnect if connected and otherwise connect, on/off switch
 
   println("\n")
 
@@ -335,6 +395,7 @@ class WindTurbines(val id: String) {
 
   override def toString: String = s"\n ---------------------------- \n WindTurbines $id \n Energy generated: $energyGenerated, \n Turn angle: $turnAngle, \n Connected: $isConnected"
   
+  //for telling the status
 }
 
 
@@ -343,10 +404,14 @@ class WindTurbines(val id: String) {
 
 
 class HydroPowerPlant(val id: String) {
+
+  //defining hydro powerplant class
   
   private var energyGenerated: Double = 0
 
   private var isConnected: Boolean = true
+
+  //def values for energy and connection
 
   
 
@@ -355,13 +420,21 @@ class HydroPowerPlant(val id: String) {
   
   def generateEnergy(amount: Double): Unit = {
 
+    //method for generating energy
+
     if (isConnected== false) {alarm.generateConnectionError()}
     else {
 
       energyGenerated += amount
 
+      //changing the energy generated value
+
       val energy_records = Source.fromFile("energy_history.csv").getLines().toList
-      var total_energy = 0.0 // Default value
+
+      //getting data from file
+      var total_energy = 0.0 
+
+      //def value for capacity
       
       energy_records.lastOption.foreach { line =>
         line.split(",") match {
@@ -371,16 +444,27 @@ class HydroPowerPlant(val id: String) {
         }
       }
 
+      //finding total energy using the last recording in a file
+
       val timestamp = LocalDateTime.now()
+
+      //current timestamp
       val capacity = total_energy + energyGenerated
 
-      if (capacity>95000) {alarm.generateStorageError()}
+      //total capacity
+
+      if (capacity>95000) {alarm.generateStorageError()} //give error if capacity is more than 95000
       val formattedTime = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+      //formatting current time
       val report = s"$id,$formattedTime,$energyGenerated,$capacity/10000\n"
+
+      //report var for the file writing
 
       val fileWriter = new FileWriter("energy_history.csv", true)
       fileWriter.write(report)
       fileWriter.close()
+
+      //writing to the file
     }
 
   
@@ -390,6 +474,8 @@ class HydroPowerPlant(val id: String) {
 
   def disconnectEmergency(): Unit ={
 
+    //emergency disconnect method
+
       isConnected= false
 
 
@@ -398,6 +484,8 @@ class HydroPowerPlant(val id: String) {
     }
 
   def disconnect(): Unit ={
+
+    // connect/disconnect method
 
     if (isConnected== true) {
 
@@ -409,6 +497,8 @@ class HydroPowerPlant(val id: String) {
     isConnected= true
   }
 
+  //disconnect if connected and otherwise connect, on/off switch
+
   println("\n")
 
   println(s"Connected: $isConnected ")
@@ -418,6 +508,7 @@ class HydroPowerPlant(val id: String) {
 
   override def toString: String = s"\n ---------------------------- \n Hydro powerplant $id \n Energy generated: $energyGenerated, \n Connected: $isConnected"
   
+  //for telling the status
 }
 
 
@@ -428,8 +519,12 @@ class HydroPowerPlant(val id: String) {
 
 
 class ControlBoard() {
+
+  //defining the control board class
   
   def menu(): Unit= {
+
+    //menu method
 
     println("\n")
     
@@ -456,8 +551,12 @@ class ControlBoard() {
 
     println("---------------------------------")
 
+    //menu options to the screen
+
 
     val input= scala.io.StdIn.readLine("YOUR OPTION: ")
+
+    //gathering input
 
 
     input match {
@@ -470,6 +569,8 @@ class ControlBoard() {
       case "e" => exit() 
       case _   => menu()
     }
+
+    //input matching, to different methods
  
 
   }
@@ -477,12 +578,16 @@ class ControlBoard() {
 
   def exit() ={
 
+    //exit method, exits the program
+
     print("BYE")
 
   }
 
 
   def machinesControl(): Unit= {
+
+    //machines control method, makes it possible to control the machines
 
     println("\n")
 
@@ -501,12 +606,20 @@ class ControlBoard() {
 
     println("---------------------------------")
 
+    //menu options to the screen
+
     
 
     val powerPlant = scala.io.StdIn.readLine("YOUR OPTION: ")
 
+    //gathering the input
+
+    //below is input matching
+
     powerPlant match {
       case "1" => {
+
+        //solar panel controls
 
       println("\n")
 
@@ -526,7 +639,11 @@ class ControlBoard() {
 
       println("---------------------------------")
 
+      //menu options to the screen
+
        val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+       //another input 
 
        
 
@@ -540,6 +657,8 @@ class ControlBoard() {
 
         }
 
+        //move left
+
         case "2" => {
 
           solarPanels.moveRight()
@@ -547,6 +666,8 @@ class ControlBoard() {
           menu()
           
         }
+
+        //move right
 
         case "3" => {
 
@@ -556,18 +677,26 @@ class ControlBoard() {
           
         }
 
+        //disconnect/connect
+
         case "4" => {
 
           menu()
           
         }
 
+        //back to menu
+
         case _   => menu()
 
        }
 
+       //in case of other character also come back to menu
+
        }
       case "2" => {
+
+        //wind turbine control
 
         println("\n")
 
@@ -587,7 +716,11 @@ class ControlBoard() {
 
         println("---------------------------------")
 
+        //menu to screen
+
         val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+        //input
 
         
 
@@ -601,6 +734,8 @@ class ControlBoard() {
 
           }
 
+          // move left
+
           case "2" => {
 
             windTurbines.moveRight()
@@ -608,6 +743,8 @@ class ControlBoard() {
             menu()
             
           }
+
+          //move right
 
           case "3" => {
 
@@ -617,17 +754,25 @@ class ControlBoard() {
             
           }
 
+          //disconnect/connect
+
           case "4" => {
 
             menu()
             
           }
 
+          //back to menu
+
           case _   => menu()
 
         }
+
+        //back to menu in case of other character
        }
       case "3" => {
+
+        //Hydro powerplant
 
         println("\n")
 
@@ -647,7 +792,11 @@ class ControlBoard() {
 
         println("---------------------------------")
 
+        //info to screen
+
         val choice = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+        //input
 
         
 
@@ -663,19 +812,29 @@ class ControlBoard() {
             
           }
 
+          //disconnect/connect
+
           case "2" => {
 
             menu()
             
           }
 
+          //back to menu
+
           case _   => menu()
 
         }
 
+        //back to menu if other character
+
       }
       case "4" => menu() 
+
+      //back to menu
       case _   => machinesControl()
+
+      //machines control again if wrong input
     }
 
 
@@ -687,6 +846,8 @@ class ControlBoard() {
   }
 
   def machinesStatus(): Unit = {
+
+    // method for sources statuses
 
     println("\n")
 
@@ -701,12 +862,18 @@ class ControlBoard() {
     println("3. HYDRO POWERPLANT  |  4.  EXIT TO MENU")
 
     println("---------------------------------")
+    
+    //menu to screen
 
     
 
     val powerPlant = scala.io.StdIn.readLine("YOUR OPTION: ")
 
+    //input
+
     var status= ""
+
+    //def value for status
 
     
 
@@ -724,6 +891,8 @@ class ControlBoard() {
         
       }
 
+      //status for solar panel
+
       case "2" => {
 
         status = windTurbines.toString()
@@ -733,6 +902,8 @@ class ControlBoard() {
         menu()
 
       }
+
+      //status for wind turbine
 
       case "3" => {
 
@@ -744,9 +915,15 @@ class ControlBoard() {
 
       }
 
+      //status for hydro powerplant
+
       case "4" => menu()
 
+      //back to menu
+
       case _ => machinesStatus()
+
+      //back to machines status if wrong character
 
 
 
@@ -754,14 +931,22 @@ class ControlBoard() {
 
     println(s"$status")
 
+    //printing the status
+
     
 
   }
 
   def dataAnalysis(): Unit = {
 
+    //method for data analysis
+
     def filterDataByDate(date: LocalDate): List[String] = {
+
+      //method for filtering the data by date
       val energyRecords = scala.io.Source.fromFile("energy_history.csv").getLines().toList
+
+      //reading data from file
       energyRecords.filter { line =>
         line.split(",") match {
           case Array(_, timestamp, _, _) =>
@@ -771,19 +956,29 @@ class ControlBoard() {
             false
         }
       }
+
+      // filtering the data for the specific date
     }
 
 
 
     val input = scala.io.StdIn.readLine("WRITE DATE IN FORMAT yyyy-MM-dd: ")
 
+    //gethering input for date
+
     val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+    //formatting date
+
     val chosenDate = LocalDate.parse(input, dateFormat)
+
+    //parsing date 
 
 
    
     val filteredLines = filterDataByDate(chosenDate)
+
+    //filtering the data
 
     val energyData = filteredLines.flatMap { line =>
       line.split(",") match {
@@ -794,13 +989,19 @@ class ControlBoard() {
       }
     }
 
+    //getting the data into the timestamp-energy format
+
     val dataAnalyser= DataAnalyser(energyData)
+
+    //Instantiating the data analyser class object
 
     val meanValue = dataAnalyser.mean
     val medianValue = dataAnalyser.median
     val modeValue = dataAnalyser.mode
     val rangeValue = dataAnalyser.range
     val midRangeValue = dataAnalyser.midRange
+
+    //declaring necessary analysis variables
 
     val analysisReport = s"ANALYSIS REPORT\n\n" +
       "\n" +
@@ -812,13 +1013,21 @@ class ControlBoard() {
       "\n" +
       s"HISTORY BY TIME FORMAT: \n${filteredLines.mkString("\n")}\n"
 
-    val outputFileName = s"data_analysis_${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv"
+      //creating a string with all the information
+
+    val outputFileName = s"history_analysis${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))}.csv"
+
+    //creating a new file
     val fileWriter = new FileWriter(outputFileName)
     
     fileWriter.write(analysisReport)
     fileWriter.close()
 
+    //writing to the file
+
     println(s"Data analysis report written to '$outputFileName'.")
+
+    //delivering status
 
 
     menu()
@@ -829,16 +1038,23 @@ class ControlBoard() {
 
   def storageStatus() = {
 
+    //method for delivering storage status
+
     val energy_records = Source.fromFile("energy_history.csv").getLines().toList
-      var total_energy = 0.0 // Default value
+    //getting energy history from file
+      var total_energy = 0.0 
+
+      //def value for total energy
       
       energy_records.lastOption.foreach { line =>
         line.split(",") match {
           case Array(_, _, _, capacity) => 
-            total_energy = capacity.split("/")(0).toDouble // Update total_energy with the extracted value
+            total_energy = capacity.split("/")(0).toDouble 
           case _ => {}
         }
       }
+
+      //find the last recording and change the total_energy to it
 
       println("\n")
 
@@ -850,11 +1066,15 @@ class ControlBoard() {
 
       println("---------------------------")
 
+      //printing status
+
     menu()
 
   }
 
   def energyHistoryView(): Unit = {
+
+    //method for making a view for specific type of source
 
     println("\n")
 
@@ -870,9 +1090,13 @@ class ControlBoard() {
 
     println("---------------------------------")
 
+    //printing to the screen
+
     
 
     val powerPlant = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+    //input
 
     
 
@@ -887,11 +1111,17 @@ class ControlBoard() {
 
     }
 
+    //options for printing records for types of sources
+
     menu()
 
     def printRecords(idM: String): Unit = {
 
+      //method for printing records
+
       val energyRecords = scala.io.Source.fromFile("energy_history.csv").getLines().toList
+
+      //getting records from file
       val filteredLines = energyRecords.filter { line =>
         line.split(",") match {
           case Array(id, _, energyGenerated, _) => id.trim == idM && energyGenerated.nonEmpty
@@ -899,7 +1129,11 @@ class ControlBoard() {
         }
       }
 
+      //filtering the records based on the name of the source (specifically determined by the model id)
+
       if (filteredLines.nonEmpty) {
+
+        //if not empty do this
 
         println("\n")
         println(s"HISTORY FOR SPECIFIC ENERGY SOURCE")
@@ -911,9 +1145,13 @@ class ControlBoard() {
             case _ =>
           }
         }
+
+        //printing the records for this energy source
       } else {
         println(s"NOTHING FOUND")
       }
+
+      //printing nothing found if no info
     }
 
 
@@ -927,8 +1165,12 @@ class ControlBoard() {
 
 class ErrorAlarm {
 
+  //error alarm system class
+
 
   def generateStorageError(): Unit = {
+
+    //defining method which gives error and disconnects the sources if the storage is almost full
 
     println("\n")
 
@@ -938,11 +1180,15 @@ class ErrorAlarm {
 
     println("-----------------------------------------------------------")
 
+    //printing
+
     solarPanels.disconnectEmergency()
 
     windTurbines.disconnectEmergency()
 
     hydroPlant.disconnectEmergency()
+
+    //using class objects to disconnect
 
     
 
@@ -951,6 +1197,8 @@ class ErrorAlarm {
 
   def generateConnectionError(): Unit = {
 
+    //method that generates connection error
+
     println("\n")
 
     println("-----------------------------------------------------------")
@@ -958,6 +1206,8 @@ class ErrorAlarm {
     println(s"Error: ENERGY SOURCE IS DISCONNECTED")
 
     println("-----------------------------------------------------------")
+
+    //printing
 
 
 
@@ -971,8 +1221,12 @@ class ErrorAlarm {
 
   
 class DataAnalyser(data: Seq[Double]) {
+
+  //class for data analysis
   
   def mean: Double = data.sum / data.length.toDouble
+
+  //method for the mean value
 
   def median: Double = {
     val sortedData = data.sorted
@@ -983,6 +1237,8 @@ class DataAnalyser(data: Seq[Double]) {
       sortedData(midIndex)
   }
 
+  //method for finding median
+
   def mode: Seq[Double] = {
     val counts = mutable.Map[Double, Int]().withDefaultValue(0)
     data.foreach(value => counts(value) += 1)
@@ -991,9 +1247,15 @@ class DataAnalyser(data: Seq[Double]) {
     counts.filter(_._2 == maxCount).keys.toSeq
   }
 
+  //method for finding mode
+
   def range: Double = data.max - data.min
 
+  //method for finding range
+
   def midRange: Double = (data.min + data.max) / 2
+
+  //method for finding midRange
 }
 
 
