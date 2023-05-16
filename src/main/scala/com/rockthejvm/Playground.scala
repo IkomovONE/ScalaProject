@@ -1,9 +1,15 @@
 package com.rockthejvm
 import java.io.FileWriter
 import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import scala.io.Source
 import scala.collection.mutable
+
+
+//Scala REPS implmentation
+
+//Daniil Komov and Andrei Toma
 
 
 
@@ -343,6 +349,8 @@ class ControlBoard() {
 
     println("3. DATA ANALYSIS        |  4.  SEE STORAGE STATUS")
 
+    println("5. VIEW ENERGY PRODUCTION HISTORY")
+
     println("---------------------------------")
 
     println("OR ENTER E TO EXIT")
@@ -358,6 +366,7 @@ class ControlBoard() {
       case "2" => machinesStatus()
       case "3" => dataAnalysis() 
       case "4" => storageStatus() 
+      case "5" => energyHistoryView()
       case "E" => exit() 
       case "e" => exit() 
       case _   => menu()
@@ -652,26 +661,30 @@ class ControlBoard() {
 
   def dataAnalysis(): Unit = {
 
-    def filterDataByTimeFormat(timeFormat: String): List[String] = {
+    def filterDataByDate(date: LocalDate): List[String] = {
       val energyRecords = scala.io.Source.fromFile("energy_history.csv").getLines().toList
       energyRecords.filter { line =>
         line.split(",") match {
           case Array(_, timestamp, _, _) =>
-            isValidTimestamp(timestamp, timeFormat)
+            val recordDate = LocalDate.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            recordDate.isEqual(date)
           case _ =>
             false
         }
       }
     }
 
-    def isValidTimestamp(timestamp: String, timeFormat: String): Boolean = {
-      val dateTime = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-      val formattedTime = dateTime.format(DateTimeFormatter.ofPattern(timeFormat))
-      timestamp.startsWith(formattedTime)
-    }
 
-    val timeFormat = scala.io.StdIn.readLine("Enter the time format (e.g., 'yyyy-MM-dd' or 'HH'): ")
-    val filteredLines = filterDataByTimeFormat(timeFormat)
+
+    val input = scala.io.StdIn.readLine("WRITE DATE IN FORMAT yyyy-MM-dd: ")
+
+    val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+    val chosenDate = LocalDate.parse(input, dateFormat)
+
+
+   
+    val filteredLines = filterDataByDate(chosenDate)
 
     val energyData = filteredLines.flatMap { line =>
       line.split(",") match {
@@ -690,16 +703,19 @@ class ControlBoard() {
     val rangeValue = dataAnalyser.range
     val midRangeValue = dataAnalyser.midRange
 
-    val analysisReport = s"Analysis Report\n\n" +
-      s"Time format: $timeFormat\n" +
+    val analysisReport = s"ANALYSIS REPORT\n\n" +
+      "\n" +
       s"Mean: $meanValue\n" +
       s"Median: $medianValue\n" +
       s"Mode: $modeValue\n" +
       s"Range: $rangeValue\n" +
-      s"Mid-range: $midRangeValue\n"
+      s"Mid-range: $midRangeValue\n" +
+      "\n" +
+      s"HISTORY BY TIME FORMAT: \n${filteredLines.mkString("\n")}\n"
 
     val outputFileName = s"data_analysis_${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv"
     val fileWriter = new FileWriter(outputFileName)
+    
     fileWriter.write(analysisReport)
     fileWriter.close()
 
@@ -738,6 +754,75 @@ class ControlBoard() {
     menu()
 
   }
+
+  def energyHistoryView(): Unit = {
+
+    println("\n")
+
+
+    println("CHOOSE THE ENERGY SOURCE")
+
+    println("---------------------------------")
+
+
+    println("1. SOLAR PANELS      |  2.  WIND TURBINES")
+
+    println("3. HYDRO POWERPLANT  |  4.  EXIT TO MENU")
+
+    println("---------------------------------")
+
+    
+
+    val powerPlant = scala.io.StdIn.readLine("YOUR OPTION: ")
+
+    
+
+    powerPlant match {
+
+      case "1" => printRecords("model_3000")
+      case "2" => printRecords("model_2000")
+      case "3" => printRecords("model_1000")
+      case "4" => menu()
+      case _ => energyHistoryView()
+
+
+    }
+
+    menu()
+
+    def printRecords(idM: String): Unit = {
+
+      val energyRecords = scala.io.Source.fromFile("energy_history.csv").getLines().toList
+      val filteredLines = energyRecords.filter { line =>
+        line.split(",") match {
+          case Array(id, _, energyGenerated, _) => id.trim == idM && energyGenerated.nonEmpty
+          case _ => false
+        }
+      }
+
+      if (filteredLines.nonEmpty) {
+
+        println("\n")
+        println(s"HISTORY FOR SPECIFIC ENERGY SOURCE")
+
+        println("------------------------------------------------")
+        filteredLines.foreach { line =>
+          line.split(",") match {
+            case Array(_, timestamp, energyGenerated, _) => println(s"$timestamp - $energyGenerated")
+            case _ =>
+          }
+        }
+      } else {
+        println(s"NOTHING FOUND")
+      }
+    }
+
+
+
+    }
+
+
+    
 
   
 
